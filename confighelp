@@ -1,0 +1,14 @@
+API-Key: EpiGet uses TVMaze to gather data about th-shows from it's database.  an API Key is required to retrieve this data.
+You must register for a TVMaze Account at https://www.tvmaze.com/account/register to obtain a key. When prompted,
+paste your unique API Key into the field provided.
+
+library-path: EpiGet requires a path to your TV-Shows Library.  This must be reachable from the host computer where it 
+is running, and EpiGet will need write access to this directory location.
+
+torrent-path:  EpiGet does not actually download any video content to your library.  It merely retrieves .torrent files
+and places then into a directory. The user is responsible for configuring their preferred bittorrent client that will
+automatically begin downloading when a new .torrent file is saved to that location.  EpiGet does not endorse or support
+any bittorrent client. EpiGet will need write access to this directory location.
+
+download-path: After your perfered bittorrent client is finished downloading your scheduled content, EpiGet will move the
+necesary files to their aproprate location in your media library.  EpiGet will need write access to this location
