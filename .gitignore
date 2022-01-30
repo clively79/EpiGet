@@ -1,4 +1,4 @@
 __pycache__/*
-!.vscode/launch.json
 *.log
 *.json
+!.vscode/launch.json
