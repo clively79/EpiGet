@@ -1,8 +1,5 @@
 __pycache__/
-__pycache__/*
+.vscode/
 modules/__pycache__/
-modules/__pycache__/*
 *.log
 *.json
-.vscode/
-.vscode/*
