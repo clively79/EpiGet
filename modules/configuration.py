@@ -21,19 +21,19 @@ class Configuration:
 
         def getport(str):
             p = input(f'{str} (1025-65535) default 5555: ')
-            if p == '' or not p.isnumeric() or p < 1025 or p > 65535 or not isinstance(p, int):
+            if p == '' or not p.isnumeric() or int(p) < 1025 or int(p) > 65535 or not isinstance(p, int):
                 return 5555
 
         def getpath(str):
             temp = input(f'{str} :')
-            path = temp if temp[-1] == '\\' else temp + '\\'
+            path = temp if temp[-1] == '/' else temp + '/'
 
             try:
                 open(path + 'test.conf', 'w')
             except:
                 raise('Unable to write to path provided. Verify that EpiGet has permission to write to the specified directory and rerun configuration')
             else:
-                os.remove(configuration[f'{key}']+'test.conf')
+                os.remove(path +'test.conf')
 
             return path
 
