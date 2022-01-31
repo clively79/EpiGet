@@ -3,3 +3,6 @@ __pycache__/
 modules/__pycache__/
 *.log
 *.json
+testconnection.py 
+showlookup.py 
+epigetmodules.py 
