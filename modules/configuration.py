@@ -3,7 +3,11 @@ import sys
 
 
 class Configuration:
-    def __init__(self, settings):
+    def __init__(self, filename='config.json'):
+        configfile = open(filename, 'r')
+        settings = json.loads(configfile.read())
+        configfile.close()
+
         self.ver = settings['ver']
         self.port = settings['port']
         self.api_key = settings['API-Key']
