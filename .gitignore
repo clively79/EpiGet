@@ -1,6 +1,6 @@
-__pycache__
-.vscode
-modules/__pycache__
+__pycache__/
+.vscode/
+modules/__pycache__/
 *.log
 *.json
 testconnection.py
