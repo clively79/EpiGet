@@ -1,9 +1,11 @@
 from operator import truediv
 import socket
-#import json
+import json
+from publisher import Publisher
 from modules.configuration import Configuration
 
-class Daemon:
+
+class Daemon(Publisher):
 
     def __init__(self, host='localhost'):
         self.config = Configuration()
@@ -12,11 +14,13 @@ class Daemon:
         self.sock.listen()
 
     def start(self):
-        #log.info(f'Listening for connections on \'localhost:{self.config.port}\'')
-        
+        super.notifySubscribers(
+            f'Listening for connections on \'localhost:{self.config.port}\'')
+
         while True:
             client, address = self.sock.accept()
             client.send('Epigetd recieved your connection request'.encode())
-            #log.info(f'recieved connection from {address}')
-            #message = json.loads(client.recv(1500))
-            #log.info(f'From: {address} Recieved: {type(message)} \'{message}\'')
+            super.notifysubscribers(f'recieved connection from {address}')
+            message = json.loads(client.recv(1500))
+            super.notifySubscribers(
+                f'From: {address} Recieved: {type(message)} \'{message}\'')
