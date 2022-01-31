@@ -1,10 +1,4 @@
-from modules.subscriber import Subscriber
-
-
-from subscriber import Subscriber
-
-
-class publisher:
+class Publisher:
     def __init__(self):
         self.subscribers = set()
 

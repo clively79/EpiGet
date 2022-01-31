@@ -2,19 +2,16 @@
 
 import sys
 import os
-import logging
+from modules.log import DaemonLogger
 from modules.configuration import Configuration
 from modules.daemon import Daemon
 
 
 def main():
-    logging.basicConfig(filename='epiget.log',
-                        format='[EPIGET DAEMON][%(asctime)s %(message)s]',
-                        filemode='a')
-    log = logging.getLogger()
-    log.setLevel(logging.INFO)
-
+    
+    logger = DaemonLogger()
     daemon = Daemon()
+    daemon.addSubscriber(logger)
     daemon.start()
 
 if __name__ == '__main__':
