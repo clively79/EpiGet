@@ -1,5 +1,3 @@
-from abc import abstractmethod
-from operator import truediv
 import socket
 import json
 from modules.subscriber import Subscriber
@@ -7,7 +5,6 @@ from modules.publisher import Publisher
 from modules.subscriber import Subscriber
 from modules.configuration import Configuration       
 from modules.messagetypes import *
-#import threading 
 
 class Daemon(Publisher, Subscriber):
 
