@@ -1,19 +1,35 @@
+#!/usr/bin/python3
+
 import sys
 import socket
 import json
 import os
-import datetime
+import logging
 from modules.configuration import Configuration
 
 
 def main():
+    logging.basicConfig(filename='epiget.log',
+                        format='[EPIGET DAEMON][%(asctime)s %(message)s]',
+                        filemode='a')
+    log = logging.getLogger()
+    log.setLevel(logging.INFO)
 
+    PID = os.getpid()
+    config = Configuration()
+
+    sock = socket.socket()
+    sock.bind(('localhost', config.port))
+    sock.listen()
+    
+    log.info(f'Started with PID: {PID} Listening for connections on \'localhost:{config.port}\'')
+    
     while True:
         client, address = sock.accept()
-        logfile.write(f'[EpiGet Daemon] [{datetime.now()}] recieved connection from {address}')
-        data = client.recv(1500)
-        message = bytes(data)
-        logfile.write(f'[EpiGet Daemon] [{datetime.now()}] {address} sent \'{json.loads(message.decode())}\'')
+        client.send('Epigetd recieved your connection request'.encode())
+        log.info(f'recieved connection from {address}')
+        message = json.loads(client.recv(1500))
+        log.info(f'From: {address} Recieved: {type(message)} \'{message}\'')
 
 
 if __name__ == '__main__':
@@ -31,13 +47,5 @@ if __name__ == '__main__':
             if PID == 0:
                 sys.exit(0)
             else:
-                settings = open('config.json', 'r')
-                config = Configuration(json.loads(settings.read()))
-                settings.close()
-                sock = socket.socket()
-                sock.bind(('localhost', config.port))
-                sock.listen()
-                logfile = open('epiget.log', 'a')
-                logfile.write(f'[EpiGet Daemon] [{datetime.now()}] Started with PID: {PID} Listening for connections on \'localhost:{config.port}\'')
                 main()
             
