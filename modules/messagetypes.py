@@ -1,3 +1,0 @@
-class DaemonMessage:
-    pass
-
