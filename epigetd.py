@@ -2,32 +2,57 @@
 
 import sys
 import os
-from modules.log import DaemonLogger
 from modules.configuration import Configuration
-from modules.daemon import Daemon
-
-
-def main():
-    
-    logger = DaemonLogger()
-    daemon = Daemon()
-    daemon.addSubscriber(logger)
-    daemon.start()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == '--configure':
-        Configuration.configure()
-    else:
-        try:
-            settings = open('config.json', 'r')
-        except:
-            print(
-                "EpiGet has not been configured. Run 'epiget.py --configure' before using EpiGet.")
+    try:
+        settings = open('config.json', 'r')
+        settings.close()
+    except:
+        print(
+            "EpiGet has not been configured. Run 'epiget.py configure' before using EpiGet.")
+    
+    config = Configuration()
+    if len(sys.argv) == 1:  
+        
+        PID = os.fork()
+        if PID == 0:
+            sys.exit(0)
         else:
-            settings.close()
-            PID = os.fork()
-            if PID == 0:
-                sys.exit(0)
-            else:
-                main()
+            from modules.log import DaemonLogger
+            from modules.daemon import Daemon
+            
+            daemon = Daemon(config)
+            daemon.start()
+
+    else:
+        from modules.client import Client
+        from modules.arguments import verifyArguments
+        
+        parsedArguments = verifyArguments()
+        def printLicense():
+            file = open('LICENSE', 'r')
+            print(file.read())
+            file.close()
+        
+        def printReadme():
+            file = open('README', 'r')
+            print(file.read())
+            file.close()
+        
+        def launchClient():
+            client = Client.newClient(parsedArguments)
+            client.send()
+
+        switch = {
+                    'configure' : Configuration.configure,
+                    'license'   : printLicense,
+                    'readme'    : printReadme,
+                    'add'       : launchClient,
+                    'delete'    : launchClient,
+                    'stop'      : launchClient
+                }
+        
+        switch[parsedArguments.action]()
+        
             
