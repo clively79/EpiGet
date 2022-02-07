@@ -1,11 +1,13 @@
-import sys
-import socket
 import json
+from socket import socket
+from modules.messages import *
+from modules.dispatch import Dispatcher
 from modules.configuration import Configuration
 from modules.subscriber import Subscriber
 from modules.publisher import Publisher
 from modules.subscriber import Subscriber
 from modules.log import DaemonLogger
+
 class Daemon(Publisher):
     """Listens for connections, recieves data from client connections, and notifies worker threads for various tasks
 
@@ -27,33 +29,46 @@ class Daemon(Publisher):
             raise TypeError
             
         self.config = cfg
-        self.sock = socket.socket()
+        self.sock = socket()
         self.sock.bind((host, self.config.port))
         self.sock.listen()
-        self.threads = set()
+        self.threads = {}
         self.logger = DaemonLogger()
-        
-
+        self.dispatcher = Dispatcher()
+        self.addSubscriber(self.dispatcher)
+        self.dispatcher.addSubscriber(self.logger)
+        self.addSubscriber(self.logger)
+        self.notifySubscribers(LogMessage.newLogMessage(f'Listening for connections on \'localhost:{self.config.port}\''))
+    
     def start(self):
         """Starts the daemon.
         """
-        self.addSubscriber(self.logger)
-        self.notifySubscribers({'log': [f'Listening for connections on \'localhost:{self.config.port}\'']})
+        
+        
         while True:
-            client, address = self.sock.accept()
-            self.notifySubscribers({'log': [f'recieved connection from {address}']})
-            try:
-                data = json.loads(client.recv(1500))
-            
-            except:
-                self.notifySubscribers({'log': [f'Malformed Message from {address}']})
-                
-            else:
-                self.notify(data)
+            c, address = self.sock.accept()
+            self.notifySubscribers(LogMessage.newLogMessage(f'recieved connection from {address}'))
+            buffer = ''
+        
+            while True: 
+                incomming = c.recv(1024)
+                buffer += incomming.decode()
+        
+                if len(incomming) == 0 or len(bytes(incomming)) < 1024:
+                    break
 
 
+            data = json.loads(buffer)
             
+            # if the data is a dictionary lock dispatcher message queue
+            # append the message into the queue and signal the dispatcher
+            # to wake up if it is waiting for new messages
+            if isinstance(data, dict):
+                self.notifySubscribers(Dispatch.newDispatch(data, client=c))
+
+
     
+            
         
 
         

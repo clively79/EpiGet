@@ -6,7 +6,7 @@ class Client:
         to create and instance, use the newClient() Factory method. 
     """
     def __init__(self):
-        self._key = None
+        self._action = None
         self._args = None
         self._port = None
         self._hostname = None
@@ -19,49 +19,41 @@ class Client:
 
         s = socket.socket()
         s.connect((self._hostname, self._port))
-        myobject = { self._key : self._args }
+        myobject = { self._action : self._args }
         s.send(json.dumps(myobject).encode())
         s.close()
 
     @classmethod
-    def newClient(self, args, hostname='localhost'):
+    def newClient(self, ns, hostname='localhost'):
         """Factory Method for creating Client object
 
         Args:
-            args (Namespace): Argparse generated Namespace
+            ns (Namespace): Argparse generated Namespace
             hostname (str, optional): hostname where the Daemon is running. Defaults to 'localhost'.
 
         Raises:
-            TypeError: args requires an argparse.Namespace object
+            TypeError: ns requires an argparse.Namespace object
 
         Returns:
             Client: a fully configured Client object
         """
-        if not isinstance(args, argparse.Namespace):
-            raise TypeError('In function newClient: args requires an argparse.Namespace object')
+        if not isinstance(ns, argparse.Namespace):
+            raise TypeError('In function newClient: ns requires an argparse.Namespace object')
         
-        def createArgumentList() -> list:
-            
-            l = [args.action]
-            if args.action == 'add':
-                l.append('-t')
-                l.append(' '.join(args.t))
-                if args.y:
-                    l.append('-y')
-                    l.append(' '.join(args.y))
-                if args.n:
-                    l.append('-n')
-                    l.append(' '.join(args.n))
+        def createArgumentList():
+            d = {}
+            if ns.action == 'add':
+                d = { '-t' : ' '.join(ns.t)}
+                if ns.y:
+                    d['-y'] = ' '.join(ns.y) 
+                if ns.n: 
+                    d['-n'] = ' '.join(ns.n)
 
-            if args.action == 'delete':
-                l.append('-id')
-                l.append(args.id)
-            
-            return l
+            return d     
 
         client = Client()
         config = Configuration()
-        client._key = sys.argv[0]
+        client._action = ns.action
         client._args = createArgumentList()
         client._port = config.port
         client._hostname = hostname
@@ -69,4 +61,3 @@ class Client:
         return client
 
 
-    

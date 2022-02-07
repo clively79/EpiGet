@@ -19,7 +19,6 @@ if __name__ == '__main__':
         if PID == 0:
             sys.exit(0)
         else:
-            from modules.log import DaemonLogger
             from modules.daemon import Daemon
             
             daemon = Daemon(config)

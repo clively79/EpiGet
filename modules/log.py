@@ -1,5 +1,5 @@
+from modules.messages import LogMessage
 from modules.subscriber import Subscriber
-import json
 import logging
 
 class DaemonLogger(Subscriber):
@@ -15,7 +15,5 @@ class DaemonLogger(Subscriber):
     log.setLevel(logging.INFO)
 
     def notify(self, m):
-        if not isinstance(m, dict):
-            raise TypeError(f'{self.__class__.__name__} Expected {dict}, got {type(m)}')
-        
-        self.log.info(f'{m[0]} Requested: {m.get(m[0])}') 
+        if isinstance(m, LogMessage):       
+            self.log.info(f'{m.get()}') 
