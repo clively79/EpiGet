@@ -1,7 +1,7 @@
 from socket import socket
 
 
-class Message:
+""" class Message:
     def __init__(self):
         self._catalogue = {}
     
@@ -9,42 +9,61 @@ class Message:
         return True if t in self._catalogue else False
     
     def get(self, t):
-        return self._catalogue[str(type(t))] if self.has(t) else None
+        return self._catalogue[str(type(t))] if self.has(t) else None """
 
-class Dispatch(Message):
+class Dispatch():
+    _actions = ['add', 'delete', 'send', 'forward']
+    
     def __init__(self) -> None:
-        Message.__init__(self)
-        self._client = None
-        self._m = None
+        self._m = { 
+            'dispatcher'    : {
+                'action'    : None,
+                'client'    : None,
+                'tid'       : None,
+                'message'   : {}
+            }
+        }
         
     @classmethod
-    def newDispatch(self, payload, client=None):
-        
-        me = Dispatch()    
-        me._catalogue[me.__class__.__name__] = self
+    def newDispatch(self, action, client, tid=None, **kwargs):
+           
+        if not action \
+            or not isinstance(action, str) \
+            or not isinstance(client, socket) \
+            or action not in self._actions:
+            return None
+           
+        obj = Dispatch()
+        obj._m['dispatcher']['action'] = action
+        obj._m['dispatcher']['client'] = client
+        if tid:
+            obj._m['dispatcher']['tid'] = tid
 
-        if isinstance(payload, dict):
-            me._client = client
-            me._m = payload
-        
-        return me
+        for k, v in kwargs.items():
+            obj._m['dispatcher']['message'][k] = v
 
-    def getClient(self):
-        return self._client
+        return obj
+
+    def getAction(self):
+        return self._m['dispatcher']['action']
     
-    def getPayload(self):
-        return self._m
-
-class LogMessage(Message):
+    def getClient(self):
+        return self._m['dispatcher']['client']
+    
+    def getArgs(self):
+        return self._m['dispatcher']['message']
+    
+    def getTID(self):
+        return self._m['dispatcher']['tid']
+class LogMessage():
     def __init__(self) -> None:
-        Message.__init__(self)
         self._m = '' 
         
     @classmethod
     def newLogMessage(self, m):
         
         me = LogMessage()    
-        me._catalogue[me.__class__.__name__] = self
+
         
         if isinstance(m, str):
             me._m = m
@@ -53,5 +72,3 @@ class LogMessage(Message):
 
     def get(self):
         return self._m
-
-    

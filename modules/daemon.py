@@ -1,11 +1,9 @@
 import json
-from socket import socket
+from socket import AF_INET, SOCK_STREAM, socket
 from modules.messages import *
 from modules.dispatch import Dispatcher
 from modules.configuration import Configuration
-from modules.subscriber import Subscriber
 from modules.publisher import Publisher
-from modules.subscriber import Subscriber
 from modules.log import DaemonLogger
 
 class Daemon(Publisher):
@@ -29,7 +27,7 @@ class Daemon(Publisher):
             raise TypeError
             
         self.config = cfg
-        self.sock = socket()
+        self.sock = socket(AF_INET, SOCK_STREAM)
         self.sock.bind((host, self.config.port))
         self.sock.listen()
         self.threads = {}
@@ -47,6 +45,7 @@ class Daemon(Publisher):
         
         while True:
             c, address = self.sock.accept()
+            c.sendall(str(address).encode())
             self.notifySubscribers(LogMessage.newLogMessage(f'recieved connection from {address}'))
             buffer = ''
         
@@ -64,7 +63,9 @@ class Daemon(Publisher):
             # append the message into the queue and signal the dispatcher
             # to wake up if it is waiting for new messages
             if isinstance(data, dict):
-                self.notifySubscribers(Dispatch.newDispatch(data, client=c))
+                a = (list(data))[0]
+                m = data[a]
+                self.notifySubscribers(Dispatch.newDispatch(action=a, client=c, **m))
 
 
     

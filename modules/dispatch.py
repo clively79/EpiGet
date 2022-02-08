@@ -4,6 +4,7 @@ from socket import socket
 import string
 from modules.messages import *
 from modules.publisher import Publisher
+from modules.scraper import ShowAdder
 from modules.subscriber import Subscriber
 import threading
 
@@ -18,22 +19,6 @@ import threading
 
     If the message is not a WorkOrder type,  it is ignored and discarded 
 """
-class WorkOrder:
-
-    def __init__(self):
-        self._client = None
-        self._message = {}
-    
-    @classmethod
-    def newWorkOrder(self, client, message):
-        wo = WorkOrder()
-        if (isinstance(client, socket) and isinstance(message, dict)):
-            wo._client = client
-            wo._message = message
-
-        return wo    
-
-
 class Dispatcher(Subscriber, Publisher):
     """The Dispather class is a singleton. Only one object may be instantiated 
     from the class.  If an attempt is made to instatiate a second instance,  a 
@@ -75,6 +60,10 @@ class Dispatcher(Subscriber, Publisher):
         self._thread = threading.Thread(target=self.dispatcherThread)
         self._thread.start()
 
+    @classmethod
+    def instance(self):
+        return self._instance
+        
     def __new__(cls):
         if not isinstance(cls._instance, cls):
             cls._instance = object.__new__(cls)
@@ -91,11 +80,14 @@ class Dispatcher(Subscriber, Publisher):
             self._dispatcherMessageLock.release()
             self._dispatchEvent.set()
             self._dispatchEvent.clear()
+        
+        if isinstance(req, LogMessage):
+            self.notifySubscribers(req)
 
     def dispatcherThread(self):
         
         switch = {
-            'add' : self.lookup,
+            'add' : self.add,
             'delete' : self.deleteShow
         }
 
@@ -115,23 +107,27 @@ class Dispatcher(Subscriber, Publisher):
                 self._dispatcherMessageLock.release()
             
                 
-                action = list(message.getPayload())[0]
+                action = message.getAction()
                  
                 try:
                     switch[action](message)
                 except:
-                    self.notifySubscribers(LogMessage.newLogMessage(f'Action requested by the client could not be performed {action}:{arguments}'))
+                    self.notifySubscribers(LogMessage.newLogMessage(f'Action requested by the client could not be performed {action}'))
     
-    def lookup(self, m: Dispatch):
-        client = m.getClient()
-        payload = m.getPayload()
-        args = payload['add']        
+    def add(self, m: Dispatch):
+        args = m.getArgs()        
         title = args['-t'] if '-t' in list(args) else None
         year = args['-y'] if '-y' in list(args) else None
         network = args['-n'] if '-n' in list(args) else None
         f = lambda a: ', ' + a if a else ''
-        str = f'Client requested to add {title}{f(year)}{f(network)}'
+        str = f'Client requested to add {title}{f(year)}{f(network)}, Launching scraper thread'
         self.notifySubscribers(LogMessage.newLogMessage(str))
+        
+        scraper = ShowAdder.newShowAdder(m)
+        scraper.addSubscriber(self)
+        newThread = threading.Thread(target=scraper.start, name=title)
+        newThread.start()
+        self.threads[scraper.get_TID()] = scraper
 
     def deleteShow(self, **args):
         pass
