@@ -38,11 +38,12 @@ class ShowAdder(Publisher):
         _object._title = args['-t'] if '-t' in list(args) else None
         _object._year = args['-y'] if '-y' in list(args) else None
         _object._network = args['-n'] if '-n' in list(args) else None
-        _object._TID =  threading.currentThread().ident
+        _object._TID =  None
         return _object 
 
     def start(self):
         import requests
+        self._TID = threading.currentThread().ident
         def detag(html):
             soup = BeautifulSoup(html, "html.parser")
   
@@ -114,6 +115,8 @@ class ShowAdder(Publisher):
             self.notifySubscribers(LogMessage.newLogMessage(f'Client chose candidate: {clientsChoice}'))
         else:
             self.notifySubscribers(LogMessage.newLogMessage(f'Client chose none to the candidates'))
+        
+        self.notifySubscribers(Dispatch.newDispatch(action='terminate', tid=self._TID))
 
     def get_TID(self) -> int:
         return self._TID

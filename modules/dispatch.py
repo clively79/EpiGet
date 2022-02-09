@@ -54,7 +54,7 @@ class Dispatcher(Subscriber, Publisher):
     def __init__(self):
         Publisher.__init__(self)
         self._dispatchMessages = []
-        self.threads = {}
+        self._threads = {} 
         self._dispatchEvent = threading.Event()
         self._dispatcherMessageLock = threading.Lock()
         self._thread = threading.Thread(target=self.dispatcherThread)
@@ -88,7 +88,8 @@ class Dispatcher(Subscriber, Publisher):
         
         switch = {
             'add' : self.add,
-            'delete' : self.deleteShow
+            'delete' : self.deleteShow,
+            'terminate' : self.terminateThread
         }
 
         while True:
@@ -109,10 +110,8 @@ class Dispatcher(Subscriber, Publisher):
                 
                 action = message.getAction()
                  
-                try:
-                    switch[action](message)
-                except:
-                    self.notifySubscribers(LogMessage.newLogMessage(f'Action requested by the client could not be performed {action}'))
+                switch[action](message)
+                #self.notifySubscribers(LogMessage.newLogMessage(f'Action requested by the client could not be performed {action}'))
     
     def add(self, m: Dispatch):
         args = m.getArgs()        
@@ -120,14 +119,17 @@ class Dispatcher(Subscriber, Publisher):
         year = args['-y'] if '-y' in list(args) else None
         network = args['-n'] if '-n' in list(args) else None
         f = lambda a: ', ' + a if a else ''
-        str = f'Client requested to add {title}{f(year)}{f(network)}, Launching scraper thread'
-        self.notifySubscribers(LogMessage.newLogMessage(str))
-        
+        s = f'Client requested to add {title}{f(year)}{f(network)}, Launching scraper thread'
+        self.notifySubscribers(LogMessage.newLogMessage(s))
         scraper = ShowAdder.newShowAdder(m)
         scraper.addSubscriber(self)
         newThread = threading.Thread(target=scraper.start, name=title)
         newThread.start()
-        self.threads[scraper.get_TID()] = scraper
+        self._threads[str(newThread.ident)] = scraper
+
+    def terminateThread(self, m: Dispatch):
+        self._threads.pop(str(m.getTID()))
+
 
     def deleteShow(self, **args):
         pass

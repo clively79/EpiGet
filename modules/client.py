@@ -68,11 +68,11 @@ class Client:
                     
             
             try:
-                choice = int(input('Choose the description that matches your show (0..{} or N=None): '.format(len(m['candidates']))))
+                choice = int(input('Choose the description that matches your show (0..{} or N=None): '.format(len(m['candidates'])-1)))
             except:
                 choice = None
             else:
-                if not 0 <= choice <= len(m['candidates']):
+                if not 0 <= choice < len(m['candidates']):
                     choice = None
 
             response = { 'client' : choice}

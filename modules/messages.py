@@ -12,7 +12,7 @@ from socket import socket
         return self._catalogue[str(type(t))] if self.has(t) else None """
 
 class Dispatch():
-    _actions = ['add', 'delete', 'send', 'forward']
+    _actions = ['add', 'delete', 'terminate']
     
     def __init__(self) -> None:
         self._m = { 
@@ -25,18 +25,23 @@ class Dispatch():
         }
         
     @classmethod
-    def newDispatch(self, action, client, tid=None, **kwargs):
+    def newDispatch(
+                self, 
+                action: str, 
+                client=None, 
+                tid=None, 
+                **kwargs
+                    ):
            
         if not action \
             or not isinstance(action, str) \
-            or not isinstance(client, socket) \
             or action not in self._actions:
             return None
            
         obj = Dispatch()
         obj._m['dispatcher']['action'] = action
         obj._m['dispatcher']['client'] = client
-        if tid:
+        if tid and isinstance(tid, int):
             obj._m['dispatcher']['tid'] = tid
 
         for k, v in kwargs.items():
